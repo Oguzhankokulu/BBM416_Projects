@@ -1,16 +1,24 @@
 # %% [markdown]
-# # BBM418 Computer Vision Assignment 2
-# ## Homography Estimation
-# ### Student ID: b2220356053
+#  # BBM418 Computer Vision Assignment 2
+# 
+#  ## Homography Estimation
+# 
+#  ### Student ID: b2220356053
 
 # %% [markdown]
-# ## Part 1: Feature Extraction
+#  ## Part 1: Feature Extraction
 # 
-# In this part, feature detection and descriptor extraction implemented using two different methods (I couldn't make SURF work because of OPENCV limitations):
-# - **SIFT** (Scale-Invariant Feature Transform): Good for detecting features at different scales and rotations
-# - **ORB** (Oriented FAST and Rotated BRIEF): Binary descriptor, very fast but less robust
 # 
-# These features are important for homography estimation because they help us find corresponding points between images that are taken from different viewpoints.
+# 
+#  In this part, feature detection and descriptor extraction implemented using two different methods (I couldn't make SURF work because of OPENCV limitations):
+# 
+#  - **SIFT** (Scale-Invariant Feature Transform): Good for detecting features at different scales and rotations
+# 
+#  - **ORB** (Oriented FAST and Rotated BRIEF): Binary descriptor, very fast but less robust
+# 
+# 
+# 
+#  These features are important for homography estimation because they help us find corresponding points between images that are taken from different viewpoints.
 
 # %%
 # Import necessary libraries
@@ -24,6 +32,7 @@ from pathlib import Path
 plt.rcParams['figure.figsize'] = (15, 10)
 plt.rcParams['figure.dpi'] = 100
 
+
 # %%
 # Define dataset paths
 BASE_DIR = Path('/home/oguzhan/Projects/BBM416_Projects/Second_Assignment')
@@ -36,8 +45,9 @@ scene_names = [s.name for s in scenes]
 for i, name in enumerate(scene_names, 1):
     print(f"  {i}. {name}")
 
+
 # %% [markdown]
-# ### 1.1 Feature Detector Initialization
+#  ### 1.1 Feature Detector Initialization
 
 # %%
 # Initialize feature detectors
@@ -50,14 +60,21 @@ sift = cv2.SIFT_create()
 # Good for real-time applications
 orb = cv2.ORB_create(nfeatures=2000)  # Increase max features for better matching
 
+
 # %% [markdown]
-# ### 1.2 Feature Extraction Function
+#  ### 1.2 Feature Extraction Function
 # 
-# This function will:
-# 1. Load an image in grayscale (feature detectors work on intensity)
-# 2. Detect keypoints using the specified detector
-# 3. Compute descriptors for each keypoint
-# 4. Return both keypoints and descriptors for matching later
+# 
+# 
+#  This function will:
+# 
+#  1. Load an image in grayscale (feature detectors work on intensity)
+# 
+#  2. Detect keypoints using the specified detector
+# 
+#  3. Compute descriptors for each keypoint
+# 
+#  4. Return both keypoints and descriptors for matching later
 
 # %%
 def extract_features(image_path, detector, detector_name="Unknown"):
@@ -94,13 +111,19 @@ def extract_features(image_path, detector, detector_name="Unknown"):
     
     return img_color, img_gray, keypoints, descriptors
 
+
 # %% [markdown]
-# ### 1.3 Visualization Function
+#  ### 1.3 Visualization Function
 # 
-# Create a function to visualize detected keypoints on images. This helps us understand:
-# - Where features are detected (corners, edges, textured regions)
-# - How many features each detector finds
-# - The spatial distribution of features across the image
+# 
+# 
+#  Create a function to visualize detected keypoints on images. This helps us understand:
+# 
+#  - Where features are detected (corners, edges, textured regions)
+# 
+#  - How many features each detector finds
+# 
+#  - The spatial distribution of features across the image
 
 # %%
 def visualize_keypoints(img_color, keypoints, detector_name, image_name):
@@ -169,10 +192,13 @@ def compare_detectors_on_image(image_path, detectors_dict):
     plt.tight_layout()
     plt.show()
 
+
 # %% [markdown]
-# ### 1.4 Testing Feature Extraction
+#  ### 1.4 Testing Feature Extraction
 # 
-# Let's test the feature extraction on sample images from each scene. I'll compare all three detectors side-by-side to see their differences.
+# 
+# 
+#  Let's test the feature extraction on sample images from each scene. I'll compare all three detectors side-by-side to see their differences.
 
 # %%
 # Create a dictionary of all detectors
@@ -197,10 +223,13 @@ for scene_name in scene_names[:3]:  # Test on first 3 scenes
     else:
         print(f"Image not found: {test_image}")
 
+
 # %% [markdown]
-# ### 1.5 Extract and Store Features for All Images
+#  ### 1.5 Extract and Store Features for All Images
 # 
-# Now I'll extract features for all images in all scenes and store them for later use in matching and homography estimation. This will save computation time since we won't need to re-extract features.
+# 
+# 
+#  Now I'll extract features for all images in all scenes and store them for later use in matching and homography estimation. This will save computation time since we won't need to re-extract features.
 
 # %%
 def extract_all_features_for_scene(scene_path, detector, detector_name):
@@ -263,13 +292,19 @@ for scene_name in scene_names:
 
 print("\n" + "="*70)
 
+
 # %% [markdown]
-# ### 1.6 Detailed Visualization of Keypoint Distribution
+#  ### 1.6 Detailed Visualization of Keypoint Distribution
 # 
-# Let's create a detailed visualization showing how keypoints are distributed across different images. This helps understand:
-# - Which areas of the image have more features (usually textured regions)
-# - Whether features are distributed uniformly or concentrated in certain areas
-# - How different detectors behave on the same image
+# 
+# 
+#  Let's create a detailed visualization showing how keypoints are distributed across different images. This helps understand:
+# 
+#  - Which areas of the image have more features (usually textured regions)
+# 
+#  - Whether features are distributed uniformly or concentrated in certain areas
+# 
+#  - How different detectors behave on the same image
 
 # %%
 def visualize_scene_features(scene_name, detector_name='SIFT', num_images=3):
@@ -327,15 +362,23 @@ for scene in example_scenes:
         print(f"\nScene: {scene}")
         visualize_scene_features(scene, 'SIFT', num_images=3)
 
+
 # %% [markdown]
-# ### 1.7 Statistical Analysis of Feature Detectors
+#  ### 1.7 Statistical Analysis of Feature Detectors
 # 
-# Let's compare the performance characteristics of different detectors by analyzing:
-# - Number of keypoints detected per image
-# - Average keypoints across all scenes
-# - Computational efficiency (if timing info available)
 # 
-# This analysis helps justify which detector to use for different stages of the pipeline.
+# 
+#  Let's compare the performance characteristics of different detectors by analyzing:
+# 
+#  - Number of keypoints detected per image
+# 
+#  - Average keypoints across all scenes
+# 
+#  - Computational efficiency (if timing info available)
+# 
+# 
+# 
+#  This analysis helps justify which detector to use for different stages of the pipeline.
 
 # %%
 def analyze_detector_statistics():
@@ -396,24 +439,38 @@ def analyze_detector_statistics():
 # Run the analysis
 feature_stats = analyze_detector_statistics()
 
-# %% [markdown]
-# ## Part 2: Feature Matching
-# 
-# In this part, I'll implement feature matching between image pairs to find corresponding points.
-# 
-# **Matching Strategy:**
-# - Use **k-Nearest Neighbors (k=2)** to find the two closest matches for each descriptor
-# - Apply **Lowe's Ratio Test** to filter out ambiguous matches
-# - Use **Euclidean distance** for SIFT descriptors (128-dim float vectors)
-# - Visualize matches to verify quality before using them for homography
 
 # %% [markdown]
-# ### 2.1 Feature Matching with Lowe's Ratio Test
+#  ## Part 2: Feature Matching
 # 
-# I'll implement the matching function using BFMatcher (Brute Force Matcher) with k-NN and Lowe's ratio test:
-# 1. Find k=2 nearest neighbors for each descriptor
-# 2. Apply ratio test: keep match if distance(best) / distance(second_best) < threshold
-# 3. This filters out ambiguous matches where multiple features look similar
+# 
+# 
+#  In this part, I'll implement feature matching between image pairs to find corresponding points.
+# 
+# 
+# 
+#  **Matching Strategy:**
+# 
+#  - Use **k-Nearest Neighbors (k=2)** to find the two closest matches for each descriptor
+# 
+#  - Apply **Lowe's Ratio Test** to filter out ambiguous matches
+# 
+#  - Use **Euclidean distance** for SIFT descriptors (128-dim float vectors)
+# 
+#  - Visualize matches to verify quality before using them for homography
+
+# %% [markdown]
+#  ### 2.1 Feature Matching with Lowe's Ratio Test
+# 
+# 
+# 
+#  I'll implement the matching function using BFMatcher (Brute Force Matcher) with k-NN and Lowe's ratio test:
+# 
+#  1. Find k=2 nearest neighbors for each descriptor
+# 
+#  2. Apply ratio test: keep match if distance(best) / distance(second_best) < threshold
+# 
+#  3. This filters out ambiguous matches where multiple features look similar
 
 # %%
 def match_features(descriptors1, descriptors2, ratio_threshold=0.75):
@@ -494,8 +551,9 @@ print(f"  Good matches (after ratio test): {len(good_matches)}")
 print(f"  Filtered out: {len(all_matches) - len(good_matches)} ambiguous matches")
 print(f"  Ratio: {len(good_matches)/len(all_matches)*100:.1f}% passed ratio test")
 
+
 # %% [markdown]
-# ### 2.2 Visualizing Feature Matches
+#  ### 2.2 Visualizing Feature Matches
 
 # %%
 def visualize_matches(img1, kp1, img2, kp2, matches, title="Feature Matches", max_display=50):
@@ -554,13 +612,19 @@ _ = visualize_matches(
     max_display=50
 )
 
+
 # %% [markdown]
-# ### 2.3 Experimenting with Different Ratio Thresholds
+#  ### 2.3 Experimenting with Different Ratio Thresholds
 # 
-# The ratio threshold is critical for match quality. Let's test different values:
-# - **0.6**: Very strict - fewer matches but higher quality
-# - **0.75**: Balanced - commonly used default (Lowe's paper)
-# - **0.9**: Permissive - more matches but potentially more outliers
+# 
+# 
+#  The ratio threshold is critical for match quality. Let's test different values:
+# 
+#  - **0.6**: Very strict - fewer matches but higher quality
+# 
+#  - **0.75**: Balanced - commonly used default (Lowe's paper)
+# 
+#  - **0.9**: Permissive - more matches but potentially more outliers
 
 # %%
 # Compare different ratio thresholds
@@ -588,10 +652,13 @@ print("\n" + "="*80)
 print("Note: Lower threshold = stricter filtering = fewer but more reliable matches")
 print("      Higher threshold = more permissive = more matches but possibly more outliers")
 
+
 # %% [markdown]
-# ### 2.4 Matching All Image Pairs in a Scene
+#  ### 2.4 Matching All Image Pairs in a Scene
 # 
-# For panorama stitching, I need to match consecutive image pairs (1->2, 2->3, 3->4, etc.).
+# 
+# 
+#  For panorama stitching, I need to match consecutive image pairs (1->2, 2->3, 3->4, etc.).
 
 # %%
 def match_scene_pairs(scene_name, detector_name='SIFT', ratio_threshold=0.75):
@@ -652,10 +719,13 @@ def match_scene_pairs(scene_name, detector_name='SIFT', ratio_threshold=0.75):
 print(f"\nMatching all pairs in scene: {test_scene}\n")
 test_scene_matches = match_scene_pairs(test_scene, 'SIFT', ratio_threshold=0.75)
 
+
 # %% [markdown]
-# ### 2.5 Visualizing Multiple Consecutive Pairs
+#  ### 2.5 Visualizing Multiple Consecutive Pairs
 # 
-# Let's visualize matches for several consecutive pairs to see how match quality varies across the sequence.
+# 
+# 
+#  Let's visualize matches for several consecutive pairs to see how match quality varies across the sequence.
 
 # %%
 # Visualize first 3 pairs from the test scene
@@ -678,13 +748,19 @@ for pair_key in pair_keys:
         max_display=50
     )
 
+
 # %% [markdown]
-# ### 2.6 Match Quality Analysis
+#  ### 2.6 Match Quality Analysis
 # 
-# Analyze match quality across all pairs. This helps us understand:
-# - Which pairs have sufficient matches for homography estimation (need at least 4)
-# - How match quality varies across the sequence
-# - Whether any pairs might cause problems
+# 
+# 
+#  Analyze match quality across all pairs. This helps us understand:
+# 
+#  - Which pairs have sufficient matches for homography estimation (need at least 4)
+# 
+#  - How match quality varies across the sequence
+# 
+#  - Whether any pairs might cause problems
 
 # %%
 def analyze_match_quality(scene_matches):
@@ -742,10 +818,13 @@ def analyze_match_quality(scene_matches):
 print("\nAnalyzing match quality:\n")
 analyze_match_quality(test_scene_matches)
 
+
 # %% [markdown]
-# ### 2.7 Processing All Scenes
+#  ### 2.7 Processing All Scenes
 # 
-# Now match all consecutive pairs in all scenes and store the results for Part 3 (Homography Estimation).
+# 
+# 
+#  Now match all consecutive pairs in all scenes and store the results for Part 3 (Homography Estimation).
 
 # %%
 # Match all consecutive pairs in all scenes
@@ -775,98 +854,183 @@ print("All scenes matched successfully!")
 print(f"Total scenes: {len(all_scene_matches)}")
 print(f"Total pairs: {sum(len(s) for s in all_scene_matches.values())}")
 
-# %% [markdown]
-# ### 2.8 Summary of Part 2
-# 
-# **What I implemented:**
-# 1. ✅ Feature matching using BFMatcher with Euclidean distance (L2 norm)
-# 2. ✅ k-Nearest Neighbors (k=2) to find best and second-best matches
-# 3. ✅ Lowe's ratio test to filter ambiguous matches (threshold=0.75)
-# 4. ✅ Match visualization with correspondence lines
-# 5. ✅ Match quality analysis for all image pairs
-# 6. ✅ Batch processing for all scenes
-# 
-# **Key Design Choices:**
-# 
-# **1. Euclidean Distance (L2 norm):**
-#    - SIFT uses 128-dimensional float descriptors
-#    - Euclidean distance properly measures similarity in this high-dimensional space
-#    - Alternative: For ORB (binary descriptors), we would use Hamming distance
-# 
-# **2. k-NN with k=2:**
-#    - We need two nearest neighbors for Lowe's ratio test
-#    - First neighbor = candidate match
-#    - Second neighbor = used to determine if match is distinctive
-# 
-# **3. Lowe's Ratio Test (threshold=0.75):**
-#    - Compares distance of best match vs. second-best match
-#    - If ratio < 0.75, the best match is significantly better → keep it
-#    - Filters out ambiguous matches where multiple features look similar
-#    - Lower threshold = stricter (fewer, higher quality matches)
-#    - Higher threshold = more permissive (more matches, possibly more outliers)
-# 
-# **How Match Quality Affects Homography:**
-# 
-# **✅ Good Matches (Correct Correspondences):**
-#    - Lead to accurate homography estimation
-#    - RANSAC can find the correct transformation
-#    - Well-distributed matches give stable results
-# 
-# **❌ Incorrect Matches (Outliers):**
-#    - Can bias the homography if not filtered
-#    - RANSAC will remove them, but too many outliers slow down convergence
-#    - May require more RANSAC iterations
-# 
-# **⚠️ Uneven Match Distribution:**
-#    - If matches cluster in one region, homography may not generalize well
-#    - Need matches across the entire overlap area
-#    - Sparse regions may have larger alignment errors
-# 
-# **🔢 Insufficient Matches:**
-#    - Need minimum 4 point correspondences to compute homography
-#    - More matches = more robust estimation with RANSAC
-#    - Fewer matches = less reliable, more sensitive to outliers
-# 
-# The matched features are now stored in `all_scene_matches` dictionary, ready for Part 3 (Homography Estimation using DLT and RANSAC).
 
 # %% [markdown]
-# ## Part 3: Homography Estimation
+#  ### 2.8 Summary of Part 2
 # 
-# In this part, I'll implement:
-# 1. **Direct Linear Transform (DLT)** - Compute homography from point correspondences
-# 2. **Point Normalization** - Improve numerical stability
-# 3. **RANSAC** - Robust estimation by rejecting outliers
-# 4. **Visualization** - Show inliers vs outliers
-# 5. **Evaluation** - Compute reprojection error
 # 
-# ## Mathematical Background
 # 
-# ### Homography Transformation
+#  **What I implemented:**
 # 
-# A homography maps points from one image to another
+#  1. ✅ Feature matching using BFMatcher with Euclidean distance (L2 norm)
 # 
-# ### DLT Algorithm
+#  2. ✅ k-Nearest Neighbors (k=2) to find best and second-best matches
 # 
-# 1. Normalize points for numerical stability
-# 2. Build 2N×9 matrix A from N point correspondences
-# 3. Solve Ah = 0 using SVD (solution is last row of V^T)
-# 4. Denormalize to get final homography
+#  3. ✅ Lowe's ratio test to filter ambiguous matches (threshold=0.75)
 # 
-# ### RANSAC Algorithm
+#  4. ✅ Match visualization with correspondence lines
 # 
-# 1. Randomly sample 4 points
-# 2. Compute H using DLT
-# 3. Count inliers (reprojection error < threshold)
-# 4. Keep best model (most inliers)
-# 5. Refine H using all inliers
+#  5. ✅ Match quality analysis for all image pairs
+# 
+#  6. ✅ Batch processing for all scenes
+# 
+# 
+# 
+#  **Key Design Choices:**
+# 
+# 
+# 
+#  **1. Euclidean Distance (L2 norm):**
+# 
+#     - SIFT uses 128-dimensional float descriptors
+# 
+#     - Euclidean distance properly measures similarity in this high-dimensional space
+# 
+#     - Alternative: For ORB (binary descriptors), we would use Hamming distance
+# 
+# 
+# 
+#  **2. k-NN with k=2:**
+# 
+#     - We need two nearest neighbors for Lowe's ratio test
+# 
+#     - First neighbor = candidate match
+# 
+#     - Second neighbor = used to determine if match is distinctive
+# 
+# 
+# 
+#  **3. Lowe's Ratio Test (threshold=0.75):**
+# 
+#     - Compares distance of best match vs. second-best match
+# 
+#     - If ratio < 0.75, the best match is significantly better → keep it
+# 
+#     - Filters out ambiguous matches where multiple features look similar
+# 
+#     - Lower threshold = stricter (fewer, higher quality matches)
+# 
+#     - Higher threshold = more permissive (more matches, possibly more outliers)
+# 
+# 
+# 
+#  **How Match Quality Affects Homography:**
+# 
+# 
+# 
+#  **✅ Good Matches (Correct Correspondences):**
+# 
+#     - Lead to accurate homography estimation
+# 
+#     - RANSAC can find the correct transformation
+# 
+#     - Well-distributed matches give stable results
+# 
+# 
+# 
+#  **❌ Incorrect Matches (Outliers):**
+# 
+#     - Can bias the homography if not filtered
+# 
+#     - RANSAC will remove them, but too many outliers slow down convergence
+# 
+#     - May require more RANSAC iterations
+# 
+# 
+# 
+#  **⚠️ Uneven Match Distribution:**
+# 
+#     - If matches cluster in one region, homography may not generalize well
+# 
+#     - Need matches across the entire overlap area
+# 
+#     - Sparse regions may have larger alignment errors
+# 
+# 
+# 
+#  **🔢 Insufficient Matches:**
+# 
+#     - Need minimum 4 point correspondences to compute homography
+# 
+#     - More matches = more robust estimation with RANSAC
+# 
+#     - Fewer matches = less reliable, more sensitive to outliers
+# 
+# 
+# 
+#  The matched features are now stored in `all_scene_matches` dictionary, ready for Part 3 (Homography Estimation using DLT and RANSAC).
 
 # %% [markdown]
-# ### 3.1 Point Normalization
+#  ## Part 3: Homography Estimation
 # 
-# Normalizing points before DLT improves numerical stability:
-# - Center points at origin (subtract centroid)
-# - Scale so average distance from origin is √2
-# - This makes the condition number of matrix A better
+# 
+# 
+#  In this part, I'll implement:
+# 
+#  1. **Direct Linear Transform (DLT)** - Compute homography from point correspondences
+# 
+#  2. **Point Normalization** - Improve numerical stability
+# 
+#  3. **RANSAC** - Robust estimation by rejecting outliers
+# 
+#  4. **Visualization** - Show inliers vs outliers
+# 
+#  5. **Evaluation** - Compute reprojection error
+# 
+# 
+# 
+#  ## Mathematical Background
+# 
+# 
+# 
+#  ### Homography Transformation
+# 
+# 
+# 
+#  A homography maps points from one image to another
+# 
+# 
+# 
+#  ### DLT Algorithm
+# 
+# 
+# 
+#  1. Normalize points for numerical stability
+# 
+#  2. Build 2N×9 matrix A from N point correspondences
+# 
+#  3. Solve Ah = 0 using SVD (solution is last row of V^T)
+# 
+#  4. Denormalize to get final homography
+# 
+# 
+# 
+#  ### RANSAC Algorithm
+# 
+# 
+# 
+#  1. Randomly sample 4 points
+# 
+#  2. Compute H using DLT
+# 
+#  3. Count inliers (reprojection error < threshold)
+# 
+#  4. Keep best model (most inliers)
+# 
+#  5. Refine H using all inliers
+
+# %% [markdown]
+#  ### 3.1 Point Normalization
+# 
+# 
+# 
+#  Normalizing points before DLT improves numerical stability:
+# 
+#  - Center points at origin (subtract centroid)
+# 
+#  - Scale so average distance from origin is √2
+# 
+#  - This makes the condition number of matrix A better
 
 # %%
 def normalize_points(points):
@@ -911,10 +1075,13 @@ def normalize_points(points):
     
     return normalized_points, T
 
+
 # %% [markdown]
-# ### 3.2 DLT Implementation
+#  ### 3.2 DLT Implementation
 # 
-# The Direct Linear Transform computes the homography matrix from point correspondences.
+# 
+# 
+#  The Direct Linear Transform computes the homography matrix from point correspondences.
 
 # %%
 def compute_homography_dlt(src_pts, dst_pts, normalize=True):
@@ -987,12 +1154,17 @@ def compute_homography_dlt(src_pts, dst_pts, normalize=True):
     
     return H
 
+
 # %% [markdown]
-# ### 3.3 Reprojection Error
+#  ### 3.3 Reprojection Error
 # 
-# Compute the reprojection error to evaluate homography quality.
 # 
-# Lower error indicates better alignment.
+# 
+#  Compute the reprojection error to evaluate homography quality.
+# 
+# 
+# 
+#  Lower error indicates better alignment.
 
 # %%
 def compute_reprojection_error(H, src_pts, dst_pts):
@@ -1036,20 +1208,33 @@ def compute_reprojection_error(H, src_pts, dst_pts):
     
     return errors
 
+
 # %% [markdown]
-# ### 3.4 RANSAC Implementation
+#  ### 3.4 RANSAC Implementation
 # 
-# RANSAC (Random Sample Consensus) robustly estimates the homography by:
-# 1. Randomly sampling minimal sets (4 points for homography)
-# 2. Computing model (H) from sample
-# 3. Counting inliers (points with error < threshold)
-# 4. Keeping model with most inliers
-# 5. Refining final H using all inliers
 # 
-# **Key Parameters:**
-# - `ransac_thresh`: Inlier threshold in pixels
-# - `ransac_iters`: Number of iterations
-# - `min_matches`: Minimum matches needed
+# 
+#  RANSAC (Random Sample Consensus) robustly estimates the homography by:
+# 
+#  1. Randomly sampling minimal sets (4 points for homography)
+# 
+#  2. Computing model (H) from sample
+# 
+#  3. Counting inliers (points with error < threshold)
+# 
+#  4. Keeping model with most inliers
+# 
+#  5. Refining final H using all inliers
+# 
+# 
+# 
+#  **Key Parameters:**
+# 
+#  - `ransac_thresh`: Inlier threshold in pixels
+# 
+#  - `ransac_iters`: Number of iterations
+# 
+#  - `min_matches`: Minimum matches needed
 
 # %%
 def estimate_homography_ransac(src_pts, dst_pts, ransac_thresh=5.0, ransac_iters=2000, min_matches=4):
@@ -1127,10 +1312,13 @@ def estimate_homography_ransac(src_pts, dst_pts, ransac_thresh=5.0, ransac_iters
     return best_H, best_inliers
 
 
+
 # %% [markdown]
-# ### 3.5 Visualization: Inliers vs Outliers
+#  ### 3.5 Visualization: Inliers vs Outliers
 # 
-# Visualize which matches are inliers (green) and which are outliers (red) after RANSAC.
+# 
+# 
+#  Visualize which matches are inliers (green) and which are outliers (red) after RANSAC.
 
 # %%
 def visualize_inliers_outliers(img1, kp1, img2, kp2, matches, inlier_mask, title="RANSAC: Inliers vs Outliers"):
@@ -1194,10 +1382,13 @@ def visualize_inliers_outliers(img1, kp1, img2, kp2, matches, inlier_mask, title
     return img_matches
 
 
+
 # %% [markdown]
-# ### 3.6 Complete Pipeline: Extract, Match, and Estimate Homography
+#  ### 3.6 Complete Pipeline: Extract, Match, and Estimate Homography
 # 
-# Now let's put it all together and test on real images from the dataset.
+# 
+# 
+#  Now let's put it all together and test on real images from the dataset.
 
 # %%
 def estimate_homography_from_images(img1_path, img2_path, detector='SIFT', 
@@ -1330,91 +1521,169 @@ else:
     print("\nDataset not available. Pipeline implementation complete.")
     print("Load the dataset to test on real images.")
 
-# %% [markdown]
-# ### 3.7 Summary of Part 3: Homography Estimation
-# 
-# **What I Implemented:**
-# 
-# 1. ✅ **Point Normalization**
-#    - Centers points at origin
-#    - Scales to average distance √2
-#    - Improves numerical stability
-# 
-# 2. ✅ **DLT (Direct Linear Transform)**
-#    - Builds 2N×9 matrix from N correspondences
-#    - Solves Ah = 0 using SVD
-#    - Denormalizes result
-# 
-# 3. ✅ **Reprojection Error**
-#    - Computes ||dst - H·src||₂
-#    - Evaluates homography quality
-# 
-# 4. ✅ **RANSAC**
-#    - Randomly samples 4-point sets
-#    - Computes H and counts inliers
-#    - Keeps best model
-#    - Refines using all inliers
-# 
-# 5. ✅ **Visualization**
-#    - Shows inliers (green) vs outliers (red)
-#    - Verifies RANSAC performance
-# 
-# **Key Design Choices:**
-# 
-# **1. Normalization (Always Enabled):**
-# - Improves numerical stability of SVD
-# - Makes DLT less sensitive to coordinate scale
-# - Standard practice in computer vision
-# 
-# **2. RANSAC Parameters:**
-# - **Threshold = 5.0 pixels**: Balance between strict (few inliers) and permissive (many outliers)
-# - **Iterations = 2000**: Ensures high probability of finding good model
-# - **Min matches = 4**: Minimum for homography (8 DoF)
-# 
-# **3. Refinement Step:**
-# - After RANSAC finds inliers, recompute H using all of them
-# - Improves accuracy by using more data
-# - Standard RANSAC practice
-# 
-# **How RANSAC Improves Estimation:**
-# 
-# **Without RANSAC (DLT only):**
-# - All matches treated equally
-# - Outliers bias the result
-# - Can produce completely wrong H
-# 
-# **With RANSAC:**
-# - Outliers identified and removed
-# - Only geometric consensus matters
-# - Robust to 50%+ outliers
-# - Produces accurate H even with noisy matches
-# 
-# **Impact on Panorama Stitching:**
-# - Accurate H → proper alignment
-# - Removing outliers → no ghosting
-# - More inliers → more stable result
-# - Good for next part (warping & blending)
-# 
-# The homography estimation is now complete and ready for Part 4 (Image Warping and Panorama Construction)!
 
 # %% [markdown]
-# ## Part 4: Image Warping and Panorama Construction
+#  ### 3.7 Summary of Part 3: Homography Estimation
 # 
-# In this part, I'll implement:
-# 1. **Image Warping** - Transform one image into another's coordinate frame using homography
-# 2. **Canvas Size Calculation** - Determine output panorama dimensions
-# 3. **Blending Techniques** - Combine overlapping regions seamlessly
-# 4. **Panorama Stitching** - Create panoramas for all 6 scenes in the dataset
 # 
-# ### Warping Strategy:
-# - Warp all images to the coordinate system of the reference (middle) image
-# - Calculate appropriate canvas size to fit all warped images
-# - Use different blending methods: simple copy, averaging, linear/feathering blending
+# 
+#  **What I Implemented:**
+# 
+# 
+# 
+#  1. ✅ **Point Normalization**
+# 
+#     - Centers points at origin
+# 
+#     - Scales to average distance √2
+# 
+#     - Improves numerical stability
+# 
+# 
+# 
+#  2. ✅ **DLT (Direct Linear Transform)**
+# 
+#     - Builds 2N×9 matrix from N correspondences
+# 
+#     - Solves Ah = 0 using SVD
+# 
+#     - Denormalizes result
+# 
+# 
+# 
+#  3. ✅ **Reprojection Error**
+# 
+#     - Computes ||dst - H·src||₂
+# 
+#     - Evaluates homography quality
+# 
+# 
+# 
+#  4. ✅ **RANSAC**
+# 
+#     - Randomly samples 4-point sets
+# 
+#     - Computes H and counts inliers
+# 
+#     - Keeps best model
+# 
+#     - Refines using all inliers
+# 
+# 
+# 
+#  5. ✅ **Visualization**
+# 
+#     - Shows inliers (green) vs outliers (red)
+# 
+#     - Verifies RANSAC performance
+# 
+# 
+# 
+#  **Key Design Choices:**
+# 
+# 
+# 
+#  **1. Normalization (Always Enabled):**
+# 
+#  - Improves numerical stability of SVD
+# 
+#  - Makes DLT less sensitive to coordinate scale
+# 
+#  - Standard practice in computer vision
+# 
+# 
+# 
+#  **2. RANSAC Parameters:**
+# 
+#  - **Threshold = 5.0 pixels**: Balance between strict (few inliers) and permissive (many outliers)
+# 
+#  - **Iterations = 2000**: Ensures high probability of finding good model
+# 
+#  - **Min matches = 4**: Minimum for homography (8 DoF)
+# 
+# 
+# 
+#  **3. Refinement Step:**
+# 
+#  - After RANSAC finds inliers, recompute H using all of them
+# 
+#  - Improves accuracy by using more data
+# 
+#  - Standard RANSAC practice
+# 
+# 
+# 
+#  **How RANSAC Improves Estimation:**
+# 
+# 
+# 
+#  **Without RANSAC (DLT only):**
+# 
+#  - All matches treated equally
+# 
+#  - Outliers bias the result
+# 
+#  - Can produce completely wrong H
+# 
+# 
+# 
+#  **With RANSAC:**
+# 
+#  - Outliers identified and removed
+# 
+#  - Only geometric consensus matters
+# 
+#  - Robust to 50%+ outliers
+# 
+#  - Produces accurate H even with noisy matches
+# 
+# 
+# 
+#  **Impact on Panorama Stitching:**
+# 
+#  - Accurate H → proper alignment
+# 
+#  - Removing outliers → no ghosting
+# 
+#  - More inliers → more stable result
+# 
+#  - Good for next part (warping & blending)
+# 
+# 
+# 
+#  The homography estimation is now complete and ready for Part 4 (Image Warping and Panorama Construction)!
 
 # %% [markdown]
-# ### 4.1 Image Warping Function
+#  ## Part 4: Image Warping and Panorama Construction
 # 
-# Warp an image using the computed homography matrix to align it with the reference image.
+# 
+# 
+#  In this part, I'll implement:
+# 
+#  1. **Image Warping** - Transform one image into another's coordinate frame using homography
+# 
+#  2. **Canvas Size Calculation** - Determine output panorama dimensions
+# 
+#  3. **Blending Techniques** - Combine overlapping regions seamlessly
+# 
+#  4. **Panorama Stitching** - Create panoramas for all 6 scenes in the dataset
+# 
+# 
+# 
+#  ### Warping Strategy:
+# 
+#  - Warp all images to the coordinate system of the reference (middle) image
+# 
+#  - Calculate appropriate canvas size to fit all warped images
+# 
+#  - Use different blending methods: simple copy, averaging, linear/feathering blending
+
+# %% [markdown]
+#  ### 4.1 Image Warping Function
+# 
+# 
+# 
+#  Warp an image using the computed homography matrix to align it with the reference image.
 
 # %%
 def warp_image(img, H, output_shape):
@@ -1465,7 +1734,7 @@ def get_canvas_size(images, homographies):
         # Check for points at infinity (w ≈ 0)
         w_values = transformed[:, 2]
         if np.any(np.abs(w_values) < 1e-6):
-            print(f"  ⚠️  WARNING: Image {idx} has corners projecting to infinity!")
+            print(f"     WARNING: Image {idx} has corners projecting to infinity!")
             print(f"      w values: {w_values}")
             # Clip to reasonable bounds instead of going to infinity
             w_values = np.maximum(np.abs(w_values), 1e-6) * np.sign(w_values)
@@ -1492,37 +1761,26 @@ def get_canvas_size(images, homographies):
     width = int(np.ceil(max_x - min_x))
     height = int(np.ceil(max_y - min_y))
     
-     # Sanity check: canvas size shouldn't be absurdly large
-    # Calculate expected panorama size based on image overlap
-    avg_img_width = np.mean([img.shape[1] for img in images])
-    avg_img_height = np.mean([img.shape[0] for img in images])
-    
-    # For N images with typical 30-50% overlap, width should be roughly:
-    # width ≈ avg_width * (1 + 0.7 * (N-1))
-    n_images = len(images)
-    expected_width = avg_img_width * (1 + 0.6 * (n_images - 1))
-    expected_height = avg_img_height * 2  # Allow some vertical expansion
-    
-    max_reasonable_width = max(expected_width * 1.5, avg_img_width * 3)
-    max_reasonable_height = max(expected_height * 1.5, avg_img_height * 3)
-    
-    if width > max_reasonable_width or height > max_reasonable_height:
-        width = min(width, int(max_reasonable_width))
-        height = min(height, int(max_reasonable_height))
-    
     # Offset to shift everything to positive coordinates
     offset = (-min_x, -min_y)
     
     return (height, width), offset
 
+
 # %% [markdown]
-# ### 4.2 Blending Techniques
+#  ### 4.2 Blending Techniques
 # 
-# Implement different blending methods to combine overlapping regions:
-# 1. **Simple Copy**: Just overwrite pixels
-# 2. **Average Blending**: Average pixel values in overlaps
-# 3. **Linear Blending**: Weight-based blending using distance from edge
-# 4. **Feathering**: Smooth transition in overlapping regions
+# 
+# 
+#  Implement different blending methods to combine overlapping regions:
+# 
+#  1. **Simple Copy**: Just overwrite pixels
+# 
+#  2. **Average Blending**: Average pixel values in overlaps
+# 
+#  3. **Linear Blending**: Weight-based blending using distance from edge
+# 
+#  4. **Feathering**: Smooth transition in overlapping regions
 
 # %%
 def blend_images_simple(img1, img2):
@@ -1600,107 +1858,6 @@ def create_distance_mask(img):
     return dist
 
 
-def crop_panorama(panorama, margin_percent=5):
-    """
-    Crop panorama to remove excessive black borders and keep only valid content.
-    
-    This helps when chained homographies cause edge distortions in panoramas.
-    
-    Args:
-        panorama: Input panorama image
-        margin_percent: Percentage of margin to remove from edges (default 5%)
-    
-    Returns:
-        cropped: Cropped panorama image
-    """
-    # Find non-black content
-    gray = cv2.cvtColor(panorama, cv2.COLOR_RGB2GRAY)
-    mask = gray > 0
-    
-    y_coords, x_coords = np.where(mask)
-    
-    if len(y_coords) == 0:
-        return panorama
-    
-    # Find bounding box of content
-    x_min, x_max = x_coords.min(), x_coords.max()
-    y_min, y_max = y_coords.min(), y_coords.max()
-    
-    content_width = x_max - x_min
-    content_height = y_max - y_min
-    
-    # Check for extreme aspect ratios (indicates edge stretching)
-    aspect_ratio = content_width / content_height if content_height > 0 else 0
-    
-    print(f"    Content size: {content_width} x {content_height} (aspect ratio: {aspect_ratio:.2f})")
-    
-    # If aspect ratio is too extreme (> 6:1 or < 1:6), apply more aggressive cropping
-    if aspect_ratio > 6 or aspect_ratio < 0.167:
-        print(f"    ⚠️  Extreme aspect ratio detected! Applying edge cropping...")
-        
-        # For very wide panoramas, crop more from the edges
-        if aspect_ratio > 6:
-            # Crop more from left and right edges
-            margin_x = int(content_width * 0.05)  # Remove 5% from each side
-            margin_y = 0
-            
-            # Find where content becomes sparse at edges
-            # Check left edge: find where we have good vertical coverage
-            left_margin = 0
-            for x in range(x_min, x_min + content_width // 4):
-                col_mask = mask[:, x]
-                coverage = np.sum(col_mask) / mask.shape[0]
-                if coverage > 0.3:  # At least 30% vertical coverage
-                    left_margin = x - x_min
-                    break
-            
-            # Check right edge
-            right_margin = 0
-            for x in range(x_max, x_max - content_width // 4, -1):
-                col_mask = mask[:, x]
-                coverage = np.sum(col_mask) / mask.shape[0]
-                if coverage > 0.3:
-                    right_margin = x_max - x
-                    break
-            
-            x_min = x_min + max(margin_x, left_margin)
-            x_max = x_max - max(margin_x, right_margin)
-            
-            print(f"    Cropped {max(margin_x, left_margin)} pixels from left, {max(margin_x, right_margin)} pixels from right")
-        
-        else:  # Very tall panorama
-            margin_x = 0
-            margin_y = int(content_height * 0.05)
-            y_min = y_min + margin_y
-            y_max = y_max - margin_y
-    
-    else:
-        # Normal cropping with small margin
-        margin_x = int(content_width * margin_percent / 100)
-        margin_y = int(content_height * margin_percent / 100)
-        
-        x_min = max(x_min + margin_x, 0)
-        x_max = min(x_max - margin_x, panorama.shape[1])
-        y_min = max(y_min + margin_y, 0)
-        y_max = min(y_max - margin_y, panorama.shape[0])
-    
-    # Ensure valid crop region
-    if x_max <= x_min or y_max <= y_min:
-        print(f"    ⚠️  Invalid crop region, returning original")
-        return panorama
-    
-    # Crop
-    cropped = panorama[y_min:y_max, x_min:x_max]
-    
-    new_width = x_max - x_min
-    new_height = y_max - y_min
-    new_aspect = new_width / new_height if new_height > 0 else 0
-    
-    print(f"    Cropped to: {new_width} x {new_height} (aspect ratio: {new_aspect:.2f})")
-    
-    return cropped
-
-
 def blend_images_feather(img1, img2):
     """
     Feathering blending: use distance-based weights for smooth transitions.
@@ -1728,16 +1885,25 @@ def blend_images_feather(img1, img2):
     
     return blended.astype(np.uint8)
 
+
 # %% [markdown]
-# ### 4.3 Panorama Stitching Pipeline
+#  ### 4.3 Panorama Stitching Pipeline
 # 
-# Complete pipeline to stitch multiple images into a panorama:
-# 1. Load all images in a scene
-# 2. Select reference image (usually middle one)
-# 3. Compute homographies from each image to reference
-# 4. Calculate canvas size
-# 5. Warp all images
-# 6. Blend them together
+# 
+# 
+#  Complete pipeline to stitch multiple images into a panorama:
+# 
+#  1. Load all images in a scene
+# 
+#  2. Select reference image (usually middle one)
+# 
+#  3. Compute homographies from each image to reference
+# 
+#  4. Calculate canvas size
+# 
+#  5. Warp all images
+# 
+#  6. Blend them together
 
 # %%
 def stitch_panorama(scene_path, detector='SIFT', blend_method='feather', 
@@ -1934,49 +2100,6 @@ def stitch_panorama(scene_path, detector='SIFT', blend_method='feather',
     for i in range(1, len(warped_images)):
         panorama = blend_func(panorama, warped_images[i])
         print(f"  Blended image {i}")
-    
-    # Post-process: Crop to valid region only
-    print(f"\n[7/7] Cropping to valid content region...")
-    gray = cv2.cvtColor(panorama, cv2.COLOR_RGB2GRAY)
-    mask = gray > 0
-    
-    y_coords, x_coords = np.where(mask)
-    if len(y_coords) > 0:
-        x_min, x_max = x_coords.min(), x_coords.max()
-        y_min, y_max = y_coords.min(), y_coords.max()
-        
-        # Check for sparse regions at edges (stretched/distorted areas)
-        # Scan from left edge
-        width = x_max - x_min
-        height = y_max - y_min
-        
-        # Find where content becomes dense (not stretched)
-        crop_left = 0
-        for x in range(x_min, x_min + width // 10):
-            col_mask = mask[y_min:y_max, x]
-            coverage = np.sum(col_mask) / len(col_mask) if len(col_mask) > 0 else 0
-            if coverage > 0.5:  # 50% vertical coverage
-                crop_left = x - x_min
-                break
-        
-        # Find where content becomes dense from right
-        crop_right = 0
-        for x in range(x_max, x_max - width // 10, -1):
-            col_mask = mask[y_min:y_max, x]
-            coverage = np.sum(col_mask) / len(col_mask) if len(col_mask) > 0 else 0
-            if coverage > 0.5:
-                crop_right = x_max - x
-                break
-        
-        x_min_new = x_min + crop_left
-        x_max_new = x_max - crop_right
-        
-        # Apply crop
-        if x_max_new > x_min_new and y_max > y_min:
-            panorama = panorama[y_min:y_max, x_min_new:x_max_new]
-            print(f"  Cropped from {width} x {height} to {x_max_new - x_min_new} x {height}")
-            print(f"  Removed {crop_left} pixels from left, {crop_right} pixels from right")
-    
 
     print("\n" + "="*80)
     print("Panorama stitching complete!")
@@ -1984,10 +2107,13 @@ def stitch_panorama(scene_path, detector='SIFT', blend_method='feather',
     
     return panorama, warped_images
 
+
 # %% [markdown]
-# ### 4.4 Test Panorama Stitching on One Scene
+#  ### 4.4 Test Panorama Stitching on One Scene
 # 
-# Let's test the panorama stitching on one scene first to verify it works.
+# 
+# 
+#  Let's test the panorama stitching on one scene first to verify it works.
 
 # %%
 # Test on one scene if dataset is available
@@ -2027,10 +2153,13 @@ else:
     print("\nDataset not available. Please load the dataset to test panorama stitching.")
     print("The panorama stitching implementation is complete and ready to use.")
 
+
 # %% [markdown]
-# ### 4.5 Process All Scenes in Dataset
+#  ### 4.5 Process All Scenes in Dataset
 # 
-# Now let's create panoramas for all 6 scenes in the dataset as required by the assignment.
+# 
+# 
+#  Now let's create panoramas for all 6 scenes in the dataset as required by the assignment.
 
 # %%
 # Process all scenes
@@ -2098,10 +2227,13 @@ else:
     print("1. Place your dataset in 'panorama_dataset' folder")
     print("2. Run the cells above to process all scenes")
 
+
 # %% [markdown]
-# ### 4.6 Comparison of Blending Methods
+#  ### 4.6 Comparison of Blending Methods
 # 
-# Let's compare different blending methods on the same scene to see their effects.
+# 
+# 
+#  Let's compare different blending methods on the same scene to see their effects.
 
 # %%
 # Compare blending methods
@@ -2166,122 +2298,231 @@ else:
     print("\nDataset not available for blending comparison.")
     print("All blending methods are implemented and ready to use.")
 
-# %% [markdown]
-# ### 4.7 Summary of Part 4: Image Warping and Panorama Construction
-# 
-# **What I Implemented:**
-# 
-# 1. ✅ **Image Warping**
-#    - `warp_image()`: Apply homography to transform images
-#    - Uses `cv2.warpPerspective()` for geometric transformation
-#    - Bilinear interpolation for smooth results
-# 
-# 2. ✅ **Canvas Size Calculation**
-#    - `get_canvas_size()`: Compute bounding box for all warped images
-#    - Transform image corners using homographies
-#    - Calculate offset to ensure all content fits
-# 
-# 3. ✅ **Three Blending Techniques**
-#    - **Simple Copy**: Fast, but shows seams
-#    - **Average Blending**: Reduces seams, can blur
-#    - **Feathering**: Distance-based weights, smoothest results
-# 
-# 4. ✅ **Complete Panorama Pipeline**
-#    - Load all images in scene
-#    - Choose reference image (middle one)
-#    - Compute homographies to reference
-#    - Warp all images to reference frame
-#    - Blend overlapping regions
-#    - Save results
-# 
-# 5. ✅ **Batch Processing**
-#    - Process all 6 scenes automatically
-#    - Save panoramas to `panorama_results/` folder
-#    - Generate comparison visualizations
-# 
-# **Key Design Choices:**
-# 
-# **1. Reference Image Selection:**
-# - Use middle image as reference
-# - Minimizes accumulated error
-# - Reduces extreme perspective distortions
-# 
-# **2. Coordinate System:**
-# - Warp all images to reference frame
-# - Calculate global canvas size
-# - Apply translation offset for positive coordinates
-# 
-# **3. Blending Strategy:**
-# - **Feathering (recommended)**: 
-#   - Weight based on distance from edge
-#   - Smooth transitions in overlaps
-#   - Best visual quality
-#   
-# - **Average**: 
-#   - Simple mean in overlaps
-#   - Good for quick results
-#   
-# - **Simple Copy**: 
-#   - Fastest method
-#   - May show visible seams
-# 
-# **4. Warping Parameters:**
-# - `cv2.INTER_LINEAR`: Good balance of speed and quality
-# - Could use `cv2.INTER_CUBIC` for higher quality
-# - `cv2.INTER_NEAREST` for speed
-# 
-# **How Blending Affects Results:**
-# 
-# **✅ Good Blending (Feathering):**
-# - Seamless transitions
-# - No visible boundaries
-# - Preserves details
-# 
-# **⚠️ Poor Blending (Simple):**
-# - Visible seams at boundaries
-# - Color discontinuities
-# - Artifacts from misalignment
-# 
-# **📊 For Report:**
-# - Show warped images before blending
-# - Highlight overlap regions
-# - Compare blending methods visually
-# - Display all 6 panoramas
-# 
-# The panorama construction is now complete! All images are stitched with proper alignment and blending.
 
 # %% [markdown]
-# ## Part 5: Augmented Reality Application
+#  ### 4.7 Summary of Part 4: Image Warping and Panorama Construction
 # 
-# In this final part, I'll extend my homography implementation to build a simple AR application. 
-# The goal is to project a video onto a planar surface (book cover) in another video, making it look 
-# like the video is playing directly on the book surface as it moves.
 # 
-# ### Dataset:
-# - `book.mov` - Target video showing a moving book on a desk
-# - `cv_cover.jpg` - Reference image of the book cover for feature matching
-# - `ar_source.mov` - Video to be projected onto the book surface
 # 
-# ### Approach:
-# 1. For each frame of `book.mov`:
-#    - Extract features from current frame and match with `cv_cover.jpg`
-#    - Estimate homography using my DLT + RANSAC implementation
-#    - Warp the corresponding frame from `ar_source.mov`
-#    - Composite the warped frame onto the book surface
-# 2. Handle aspect ratio differences by cropping source video to central region
-# 3. Save output as `ar_dynamic_result.mp4`
+#  **What I Implemented:**
 # 
-# ### Challenges:
-# - Per-frame homography estimation needs to be robust
-# - Aspect ratios differ between book and source video
-# - Need to ensure temporal consistency (no jittering)
-# - Processing many frames takes time
+# 
+# 
+#  1. ✅ **Image Warping**
+# 
+#     - `warp_image()`: Apply homography to transform images
+# 
+#     - Uses `cv2.warpPerspective()` for geometric transformation
+# 
+#     - Bilinear interpolation for smooth results
+# 
+# 
+# 
+#  2. ✅ **Canvas Size Calculation**
+# 
+#     - `get_canvas_size()`: Compute bounding box for all warped images
+# 
+#     - Transform image corners using homographies
+# 
+#     - Calculate offset to ensure all content fits
+# 
+# 
+# 
+#  3. ✅ **Three Blending Techniques**
+# 
+#     - **Simple Copy**: Fast, but shows seams
+# 
+#     - **Average Blending**: Reduces seams, can blur
+# 
+#     - **Feathering**: Distance-based weights, smoothest results
+# 
+# 
+# 
+#  4. ✅ **Complete Panorama Pipeline**
+# 
+#     - Load all images in scene
+# 
+#     - Choose reference image (middle one)
+# 
+#     - Compute homographies to reference
+# 
+#     - Warp all images to reference frame
+# 
+#     - Blend overlapping regions
+# 
+#     - Save results
+# 
+# 
+# 
+#  5. ✅ **Batch Processing**
+# 
+#     - Process all 6 scenes automatically
+# 
+#     - Save panoramas to `panorama_results/` folder
+# 
+#     - Generate comparison visualizations
+# 
+# 
+# 
+#  **Key Design Choices:**
+# 
+# 
+# 
+#  **1. Reference Image Selection:**
+# 
+#  - Use middle image as reference
+# 
+#  - Minimizes accumulated error
+# 
+#  - Reduces extreme perspective distortions
+# 
+# 
+# 
+#  **2. Coordinate System:**
+# 
+#  - Warp all images to reference frame
+# 
+#  - Calculate global canvas size
+# 
+#  - Apply translation offset for positive coordinates
+# 
+# 
+# 
+#  **3. Blending Strategy:**
+# 
+#  - **Feathering (recommended)**:
+# 
+#    - Weight based on distance from edge
+# 
+#    - Smooth transitions in overlaps
+# 
+#    - Best visual quality
+# 
+# 
+# 
+#  - **Average**:
+# 
+#    - Simple mean in overlaps
+# 
+#    - Good for quick results
+# 
+# 
+# 
+#  - **Simple Copy**:
+# 
+#    - Fastest method
+# 
+#    - May show visible seams
+# 
+# 
+# 
+#  **4. Warping Parameters:**
+# 
+#  - `cv2.INTER_LINEAR`: Good balance of speed and quality
+# 
+#  - Could use `cv2.INTER_CUBIC` for higher quality
+# 
+#  - `cv2.INTER_NEAREST` for speed
+# 
+# 
+# 
+#  **How Blending Affects Results:**
+# 
+# 
+# 
+#  **✅ Good Blending (Feathering):**
+# 
+#  - Seamless transitions
+# 
+#  - No visible boundaries
+# 
+#  - Preserves details
+# 
+# 
+# 
+#  **⚠️ Poor Blending (Simple):**
+# 
+#  - Visible seams at boundaries
+# 
+#  - Color discontinuities
+# 
+#  - Artifacts from misalignment
+# 
+# 
+# 
+#  **📊 For Report:**
+# 
+#  - Show warped images before blending
+# 
+#  - Highlight overlap regions
+# 
+#  - Compare blending methods visually
+# 
+#  - Display all 6 panoramas
+# 
+# 
+# 
+#  The panorama construction is now complete! All images are stitched with proper alignment and blending.
 
 # %% [markdown]
-# ### 5.1 Setup and Load Reference Image
+#  ## Part 5: Augmented Reality Application
 # 
-# First, I'll load the reference book cover image and extract features from it once.
-# These features will be matched against each frame of the book video.
+# 
+# 
+#  In this final part, I'll extend my homography implementation to build a simple AR application.
+# 
+#  The goal is to project a video onto a planar surface (book cover) in another video, making it look
+# 
+#  like the video is playing directly on the book surface as it moves.
+# 
+# 
+# 
+#  ### Dataset:
+# 
+#  - `book.mov` - Target video showing a moving book on a desk
+# 
+#  - `cv_cover.jpg` - Reference image of the book cover for feature matching
+# 
+#  - `ar_source.mov` - Video to be projected onto the book surface
+# 
+# 
+# 
+#  ### Approach:
+# 
+#  1. For each frame of `book.mov`:
+# 
+#     - Extract features from current frame and match with `cv_cover.jpg`
+# 
+#     - Estimate homography using my DLT + RANSAC implementation
+# 
+#     - Warp the corresponding frame from `ar_source.mov`
+# 
+#     - Composite the warped frame onto the book surface
+# 
+#  2. Handle aspect ratio differences by cropping source video to central region
+# 
+#  3. Save output as `ar_dynamic_result.mp4`
+# 
+# 
+# 
+#  ### Challenges:
+# 
+#  - Per-frame homography estimation needs to be robust
+# 
+#  - Aspect ratios differ between book and source video
+# 
+#  - Need to ensure temporal consistency (no jittering)
+# 
+#  - Processing many frames takes time
+
+# %% [markdown]
+#  ### 5.1 Setup and Load Reference Image
+# 
+# 
+# 
+#  First, I'll load the reference book cover image and extract features from it once.
+# 
+#  These features will be matched against each frame of the book video.
 
 # %%
 # Define AR dataset paths
@@ -2306,6 +2547,7 @@ for path in [book_video_path, cv_cover_path, ar_source_path]:
         print(f"✓ {path.name} found")
     else:
         print(f"✗ {path.name} NOT found")
+
 
 # %%
 # Load and extract features from the reference cover image
@@ -2339,11 +2581,15 @@ plt.axis('off')
 plt.tight_layout()
 plt.show()
 
+
 # %% [markdown]
-# ### 5.2 Video Information
+#  ### 5.2 Video Information
 # 
-# Let's check the properties of both videos (frame count, resolution, fps).
-# This helps me understand what I'm working with and plan the processing.
+# 
+# 
+#  Let's check the properties of both videos (frame count, resolution, fps).
+# 
+#  This helps me understand what I'm working with and plan the processing.
 
 # %%
 def get_video_info(video_path):
@@ -2390,12 +2636,17 @@ print(f"  Aspect ratio: {cover_img_color.shape[1]/cover_img_color.shape[0]:.2f}"
 num_frames_to_process = min(book_info['frame_count'], source_info['frame_count'])
 print(f"\nWill process {num_frames_to_process} frames (shorter video length)")
 
+
 # %% [markdown]
-# ### 5.3 Aspect Ratio Handling
+#  ### 5.3 Aspect Ratio Handling
 # 
-# The assignment mentions that the book and source video have different aspect ratios.
-# I need to crop the source video frames to match the book cover's aspect ratio.
-# I'll crop to the central region as instructed.
+# 
+# 
+#  The assignment mentions that the book and source video have different aspect ratios.
+# 
+#  I need to crop the source video frames to match the book cover's aspect ratio.
+# 
+#  I'll crop to the central region as instructed.
 
 # %%
 def crop_to_aspect_ratio(image, target_aspect_ratio):
@@ -2434,19 +2685,31 @@ def crop_to_aspect_ratio(image, target_aspect_ratio):
 target_aspect = cover_img_color.shape[1] / cover_img_color.shape[0]
 print(f"Target aspect ratio (book cover): {target_aspect:.2f}")
 
+
 # %% [markdown]
-# ### 5.4 AR Frame Processing Function
+#  ### 5.4 AR Frame Processing Function
 # 
-# This is the core function that processes a single frame:
-# 1. Detect features in current book frame
-# 2. Match with cover features
-# 3. Estimate homography using RANSAC
-# 4. Warp source frame onto book surface
-# 5. Composite the result
 # 
-# Following assignment hints:
-# - Ensure consistent scaling between source and target frames
-# - The homography H is returned for tracking drift/misalignment
+# 
+#  This is the core function that processes a single frame:
+# 
+#  1. Detect features in current book frame
+# 
+#  2. Match with cover features
+# 
+#  3. Estimate homography using RANSAC
+# 
+#  4. Warp source frame onto book surface
+# 
+#  5. Composite the result
+# 
+# 
+# 
+#  Following assignment hints:
+# 
+#  - Ensure consistent scaling between source and target frames
+# 
+#  - The homography H is returned for tracking drift/misalignment
 
 # %%
 def process_ar_frame(book_frame, source_frame, cover_kp, cover_desc, 
@@ -2559,11 +2822,15 @@ def process_ar_frame(book_frame, source_frame, cover_kp, cover_desc,
     
     return result, True, num_inliers, H
 
+
 # %% [markdown]
-# ### 5.5 Test on Sample Frames
+#  ### 5.5 Test on Sample Frames
 # 
-# Before processing the entire video, let me test on a few sample frames to verify 
-# the approach works and visualize the results.
+# 
+# 
+#  Before processing the entire video, let me test on a few sample frames to verify
+# 
+#  the approach works and visualize the results.
 
 # %%
 print("Testing AR processing on sample frames...\n")
@@ -2625,36 +2892,62 @@ plt.show()
 
 print("\nSample frames processed successfully!")
 
-# %% [markdown]
-# ### 5.6 Optional Enhancement: Feature Tracking
-# 
-# The assignment suggests using optical flow (`cv2.calcOpticalFlowPyrLK`) to track features
-# between consecutive frames, which can reduce flicker and improve temporal consistency.
-# 
-# **Why this helps:**
-# - Instead of detecting features from scratch each frame, track them from previous frame
-# - Reduces jitter and flickering in the AR overlay
-# - Faster processing (tracking is cheaper than detection + matching)
-# 
-# **Trade-off:**
-# - More complex implementation
-# - Need to re-detect periodically when tracking fails
-# - For my implementation, I'm using frame-by-frame matching which is simpler and more robust
-# 
-# **Note:** I implemented temporal consistency checks (drift monitoring) to verify the 
-# overlay doesn't misalign between frames, which addresses the stability concern without 
-# adding optical flow complexity.
 
 # %% [markdown]
-# ### 5.7 Process Full Video
+#  ### 5.6 Optional Enhancement: Feature Tracking
 # 
-# Now I'll process the entire video sequence. This may take a while depending on 
-# the number of frames. I'll track homography drift between frames to ensure no 
-# misalignment occurs (as suggested in assignment hints).
 # 
-# **Note:** As mentioned in the assignment, this is time-intensive. The `frame_skip` 
-# parameter allows processing every Nth frame for efficiency if needed, but I'll 
-# process all frames for best quality.
+# 
+#  The assignment suggests using optical flow (`cv2.calcOpticalFlowPyrLK`) to track features
+# 
+#  between consecutive frames, which can reduce flicker and improve temporal consistency.
+# 
+# 
+# 
+#  **Why this helps:**
+# 
+#  - Instead of detecting features from scratch each frame, track them from previous frame
+# 
+#  - Reduces jitter and flickering in the AR overlay
+# 
+#  - Faster processing (tracking is cheaper than detection + matching)
+# 
+# 
+# 
+#  **Trade-off:**
+# 
+#  - More complex implementation
+# 
+#  - Need to re-detect periodically when tracking fails
+# 
+#  - For my implementation, I'm using frame-by-frame matching which is simpler and more robust
+# 
+# 
+# 
+#  **Note:** I implemented temporal consistency checks (drift monitoring) to verify the
+# 
+#  overlay doesn't misalign between frames, which addresses the stability concern without
+# 
+#  adding optical flow complexity.
+
+# %% [markdown]
+#  ### 5.7 Process Full Video
+# 
+# 
+# 
+#  Now I'll process the entire video sequence. This may take a while depending on
+# 
+#  the number of frames. I'll track homography drift between frames to ensure no
+# 
+#  misalignment occurs (as suggested in assignment hints).
+# 
+# 
+# 
+#  **Note:** As mentioned in the assignment, this is time-intensive. The `frame_skip`
+# 
+#  parameter allows processing every Nth frame for efficiency if needed, but I'll
+# 
+#  process all frames for best quality.
 
 # %%
 def create_ar_video(book_video_path, ar_source_path, cover_kp, cover_desc, 
@@ -2799,12 +3092,17 @@ ar_stats = create_ar_video(
     show_progress=True
 )
 
+
 # %% [markdown]
-# ### 5.8 AR Results Analysis
+#  ### 5.8 AR Results Analysis
 # 
-# Let me analyze the processing results and extract some representative frames 
-# from the final AR video to show in the report. I'll also verify that the overlay
-# doesn't drift or misalign across frames by examining the drift statistics.
+# 
+# 
+#  Let me analyze the processing results and extract some representative frames
+# 
+#  from the final AR video to show in the report. I'll also verify that the overlay
+# 
+#  doesn't drift or misalign across frames by examining the drift statistics.
 
 # %%
 print("\nExtracting representative frames from AR video...\n")
@@ -2867,134 +3165,262 @@ if ar_stats['drift_history']:
     print(f"  Most frames have low drift, indicating stable tracking")
     print(f"  Spikes may indicate scene changes or rapid book movement")
 
+
 # %% [markdown]
-# ### 5.9 Summary of AR Implementation
+#  ### 5.9 Summary of AR Implementation
 # 
-# **What I Implemented:**
 # 
-# 1. ✅ **Reference Image Processing**
-#    - Loaded book cover reference image
-#    - Extracted SIFT features once (reused for all frames)
-#    - Visualized keypoints on cover
 # 
-# 2. ✅ **Per-Frame Homography Estimation**
-#    - Detected features in each book video frame
-#    - Matched with reference cover features using k-NN + Lowe's ratio test
-#    - Estimated homography using my DLT + RANSAC implementation
-#    - Validated with minimum inlier threshold
+#  **What I Implemented:**
 # 
-# 3. ✅ **Aspect Ratio Handling**
-#    - Cropped source video to match book cover aspect ratio
-#    - Kept central region as instructed
-#    - Resized to match cover dimensions before warping
 # 
-# 4. ✅ **Video Compositing**
-#    - Warped source frame using estimated homography
-#    - Created mask for clean compositing
-#    - Blended warped content onto book frame
-#    - Saved output as MP4 video
 # 
-# 5. ✅ **Robustness Measures**
-#    - Minimum inlier threshold (10 inliers)
-#    - Minimum feature count checks
-#    - Fallback to original frame if homography fails
-#    - Progress tracking and statistics
+#  1. ✅ **Reference Image Processing**
 # 
-# **Key Design Choices:**
+#     - Loaded book cover reference image
 # 
-# **1. Feature Detection:**
-# - Used SIFT (more robust than ORB for AR)
-# - Extracted cover features once for efficiency
-# - Per-frame detection in book video
+#     - Extracted SIFT features once (reused for all frames)
 # 
-# **2. Homography Estimation:**
-# - Reused my DLT + RANSAC implementation from Part 3
-# - RANSAC threshold = 5.0 pixels (same as panorama)
-# - Reduced iterations to 1000 for speed (vs 2000 in panorama)
-# - Minimum 10 inliers required for valid homography
+#     - Visualized keypoints on cover
 # 
-# **3. Aspect Ratio (Assignment Hint):**
-# - Source video cropped to central region (as instructed)
-# - Target aspect ratio = book cover aspect ratio
-# - **Consistent scaling**: Source always resized to exact cover dimensions
-# - Maintains proper proportions throughout video
 # 
-# **4. Temporal Consistency (Assignment Hint):**
-# - Track homography drift between consecutive frames
-# - Monitor for misalignment or excessive drift
-# - Statistics show drift values to verify stability
-# - Could implement smoothing if drift becomes problematic
 # 
-# **5. Compositing:**
-# - Binary mask for clean overlay
-# - No blending (hard boundaries)
-# - Background preserved outside book region
+#  2. ✅ **Per-Frame Homography Estimation**
 # 
-# **Challenges Faced:**
+#     - Detected features in each book video frame
 # 
-# **1. Different Aspect Ratios:**
-# - Solution: Crop source video to central region matching cover aspect ratio
-# - Ensure consistent scaling by always resizing to cover dimensions
+#     - Matched with reference cover features using k-NN + Lowe's ratio test
 # 
-# **2. Frame-to-Frame Consistency (Addressing Assignment Hints):**
-# - Each frame has independent homography estimation
-# - Implemented drift monitoring to verify no misalignment
-# - Track homography changes between consecutive frames
-# - Optical flow tracking suggested but not needed - drift analysis shows stability
+#     - Estimated homography using my DLT + RANSAC implementation
 # 
-# **3. Processing Time:**
-# - Processing all frames takes several minutes (as assignment warned)
-# - Each frame requires: feature detection, matching, RANSAC, warping
-# - Tested on sample frames first before full run (following assignment advice)
-# - Could use frame_skip parameter for faster processing if needed
+#     - Validated with minimum inlier threshold
 # 
-# **4. Failed Frames:**
-# - Some frames may have too few features or poor matches
-# - Solution: Fall back to original frame, track success rate
-# - Monitor inlier counts to ensure quality
 # 
-# **Results:**
-# - Successfully processed video with high success rate
-# - Source video appears rigidly attached to book surface
-# - Maintains correct perspective as book moves
-# - Output saved as `ar_dynamic_result.mp4`
-# - Drift analysis confirms no significant misalignment between frames
 # 
-# **Assignment Hints Addressed:**
+#  3. ✅ **Aspect Ratio Handling**
 # 
-# ✅ **Consistent Scaling**: Source frames always resized to exact cover dimensions before warping
+#     - Cropped source video to match book cover aspect ratio
 # 
-# ✅ **Verify No Drift**: Implemented homography drift tracking between consecutive frames
-# - Track Frobenius norm of H_t - H_{t-1}
-# - Low drift values confirm stable tracking
-# - Visualization shows temporal consistency
+#     - Kept central region as instructed
 # 
-# ✅ **Debug Before Full Run**: Tested on sample frames (beginning/middle/end) first
-# - Verified approach works before processing all frames
-# - Saved early frames to check correctness
+#     - Resized to match cover dimensions before warping
 # 
-# ⚠️ **Optical Flow Tracking**: Not implemented
-# - Suggested for reducing flicker but adds complexity
-# - Frame-by-frame matching is simpler and robust
-# - Drift monitoring shows acceptable stability without it
 # 
-# ⚠️ **Frame Skip**: Parameter available but set to 1 (process all frames)
-# - Could set to 2-3 for faster processing if time is critical
-# - Full frame processing provides best quality
 # 
-# **For Report:**
-# - Show reference cover with keypoints
-# - Display sample frames: book, source, and AR result
-# - Include representative frames from different video positions
-# - Discuss success rate and inlier statistics
-# - Show drift analysis plot to verify temporal consistency
-# - Explain aspect ratio handling and consistent scaling
-# - Show before/after comparison
+#  4. ✅ **Video Compositing**
 # 
-# The AR implementation is complete! The homography estimation from Part 3 successfully 
-# generalizes to dynamic video processing, demonstrating the practical application of 
-# planar homographies in augmented reality. All assignment hints were considered and 
-# key recommendations (consistent scaling, drift verification, debug-first approach) 
-# were implemented.
+#     - Warped source frame using estimated homography
+# 
+#     - Created mask for clean compositing
+# 
+#     - Blended warped content onto book frame
+# 
+#     - Saved output as MP4 video
+# 
+# 
+# 
+#  5. ✅ **Robustness Measures**
+# 
+#     - Minimum inlier threshold (10 inliers)
+# 
+#     - Minimum feature count checks
+# 
+#     - Fallback to original frame if homography fails
+# 
+#     - Progress tracking and statistics
+# 
+# 
+# 
+#  **Key Design Choices:**
+# 
+# 
+# 
+#  **1. Feature Detection:**
+# 
+#  - Used SIFT (more robust than ORB for AR)
+# 
+#  - Extracted cover features once for efficiency
+# 
+#  - Per-frame detection in book video
+# 
+# 
+# 
+#  **2. Homography Estimation:**
+# 
+#  - Reused my DLT + RANSAC implementation from Part 3
+# 
+#  - RANSAC threshold = 5.0 pixels (same as panorama)
+# 
+#  - Reduced iterations to 1000 for speed (vs 2000 in panorama)
+# 
+#  - Minimum 10 inliers required for valid homography
+# 
+# 
+# 
+#  **3. Aspect Ratio (Assignment Hint):**
+# 
+#  - Source video cropped to central region (as instructed)
+# 
+#  - Target aspect ratio = book cover aspect ratio
+# 
+#  - **Consistent scaling**: Source always resized to exact cover dimensions
+# 
+#  - Maintains proper proportions throughout video
+# 
+# 
+# 
+#  **4. Temporal Consistency (Assignment Hint):**
+# 
+#  - Track homography drift between consecutive frames
+# 
+#  - Monitor for misalignment or excessive drift
+# 
+#  - Statistics show drift values to verify stability
+# 
+#  - Could implement smoothing if drift becomes problematic
+# 
+# 
+# 
+#  **5. Compositing:**
+# 
+#  - Binary mask for clean overlay
+# 
+#  - No blending (hard boundaries)
+# 
+#  - Background preserved outside book region
+# 
+# 
+# 
+#  **Challenges Faced:**
+# 
+# 
+# 
+#  **1. Different Aspect Ratios:**
+# 
+#  - Solution: Crop source video to central region matching cover aspect ratio
+# 
+#  - Ensure consistent scaling by always resizing to cover dimensions
+# 
+# 
+# 
+#  **2. Frame-to-Frame Consistency (Addressing Assignment Hints):**
+# 
+#  - Each frame has independent homography estimation
+# 
+#  - Implemented drift monitoring to verify no misalignment
+# 
+#  - Track homography changes between consecutive frames
+# 
+#  - Optical flow tracking suggested but not needed - drift analysis shows stability
+# 
+# 
+# 
+#  **3. Processing Time:**
+# 
+#  - Processing all frames takes several minutes (as assignment warned)
+# 
+#  - Each frame requires: feature detection, matching, RANSAC, warping
+# 
+#  - Tested on sample frames first before full run (following assignment advice)
+# 
+#  - Could use frame_skip parameter for faster processing if needed
+# 
+# 
+# 
+#  **4. Failed Frames:**
+# 
+#  - Some frames may have too few features or poor matches
+# 
+#  - Solution: Fall back to original frame, track success rate
+# 
+#  - Monitor inlier counts to ensure quality
+# 
+# 
+# 
+#  **Results:**
+# 
+#  - Successfully processed video with high success rate
+# 
+#  - Source video appears rigidly attached to book surface
+# 
+#  - Maintains correct perspective as book moves
+# 
+#  - Output saved as `ar_dynamic_result.mp4`
+# 
+#  - Drift analysis confirms no significant misalignment between frames
+# 
+# 
+# 
+#  **Assignment Hints Addressed:**
+# 
+# 
+# 
+#  ✅ **Consistent Scaling**: Source frames always resized to exact cover dimensions before warping
+# 
+# 
+# 
+#  ✅ **Verify No Drift**: Implemented homography drift tracking between consecutive frames
+# 
+#  - Track Frobenius norm of H_t - H_{t-1}
+# 
+#  - Low drift values confirm stable tracking
+# 
+#  - Visualization shows temporal consistency
+# 
+# 
+# 
+#  ✅ **Debug Before Full Run**: Tested on sample frames (beginning/middle/end) first
+# 
+#  - Verified approach works before processing all frames
+# 
+#  - Saved early frames to check correctness
+# 
+# 
+# 
+#  ⚠️ **Optical Flow Tracking**: Not implemented
+# 
+#  - Suggested for reducing flicker but adds complexity
+# 
+#  - Frame-by-frame matching is simpler and robust
+# 
+#  - Drift monitoring shows acceptable stability without it
+# 
+# 
+# 
+#  ⚠️ **Frame Skip**: Parameter available but set to 1 (process all frames)
+# 
+#  - Could set to 2-3 for faster processing if time is critical
+# 
+#  - Full frame processing provides best quality
+# 
+# 
+# 
+#  **For Report:**
+# 
+#  - Show reference cover with keypoints
+# 
+#  - Display sample frames: book, source, and AR result
+# 
+#  - Include representative frames from different video positions
+# 
+#  - Discuss success rate and inlier statistics
+# 
+#  - Show drift analysis plot to verify temporal consistency
+# 
+#  - Explain aspect ratio handling and consistent scaling
+# 
+#  - Show before/after comparison
+# 
+# 
+# 
+#  The AR implementation is complete! The homography estimation from Part 3 successfully
+# 
+#  generalizes to dynamic video processing, demonstrating the practical application of
+# 
+#  planar homographies in augmented reality. All assignment hints were considered and
+# 
+#  key recommendations (consistent scaling, drift verification, debug-first approach)
+# 
+#  were implemented.
 
 
